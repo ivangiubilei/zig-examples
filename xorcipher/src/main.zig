@@ -3,6 +3,7 @@ const std = @import("std");
 const KEY = 0b10100111;
 
 pub fn encryptDecrypt(allocator: std.mem.Allocator, path: []const u8, extension: []const u8) !void {
+    // read file
     const file = try std.fs.cwd().openFile(path, .{});
     defer file.close();
 
@@ -11,22 +12,20 @@ pub fn encryptDecrypt(allocator: std.mem.Allocator, path: []const u8, extension:
     defer allocator.free(file_contents);
     _ = try file.readAll(file_contents);
 
-    // decrypt
+    // encrypt/decrypt
     var decrypted_encrypted: []u8 = try allocator.alloc(u8, file_size);
     defer allocator.free(decrypted_encrypted);
     for (file_contents, 0..) |byte, i| {
         decrypted_encrypted[i] = byte ^ KEY;
     }
 
-    // concat .decrypted to file
-    const end_file = extension;
-    var complete_path = try allocator.alloc(u8, path.len + end_file.len);
+    // create new file with the correct extension
+    var complete_path = try allocator.alloc(u8, path.len + extension.len);
     defer allocator.free(complete_path);
 
     std.mem.copyForwards(u8, complete_path[0..path.len], path);
-    std.mem.copyForwards(u8, complete_path[path.len..], end_file);
+    std.mem.copyForwards(u8, complete_path[path.len..], extension);
 
-    // create new encrypted file
     const created_file = try std.fs.cwd().createFile(complete_path, .{});
     _ = try created_file.write(decrypted_encrypted);
 }
