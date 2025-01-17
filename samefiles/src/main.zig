@@ -25,14 +25,14 @@ pub fn main() !void {
     defer std.process.argsFree(std.heap.page_allocator, args);
 
     if (args.len < 2) {
-        std.debug.print("Usage: {s} <path/to/folder/>\n", .{args[0]});
+        std.debug.print("Usage: {s} <path/to/folder>\n", .{args[0]});
         return;
     }
 
     const path = args[1];
 
     // opens the directory
-    var dir = try std.fs.cwd().openDir(path, .{});
+    var dir = try std.fs.cwd().openDir(path, .{ .iterate = true });
     defer dir.close();
 
     // create hashmap
@@ -45,11 +45,12 @@ pub fn main() !void {
         if (dir_content.name[0] == '.') continue;
 
         // concat the strings
-        const total_length = path.len + dir_content.name.len;
+        const total_length = path.len + dir_content.name.len + 1;
         const buffer_text = try allocator.alloc(u8, total_length);
         defer allocator.free(buffer_text);
         std.mem.copyForwards(u8, buffer_text[0..path.len], path);
-        std.mem.copyForwards(u8, buffer_text[path.len..], dir_content.name);
+        std.mem.copyForwards(u8, buffer_text[path.len .. path.len + 1], "/");
+        std.mem.copyForwards(u8, buffer_text[path.len + 1 ..], dir_content.name);
 
         const file = try std.fs.cwd().openFile(buffer_text, .{});
         defer file.close();

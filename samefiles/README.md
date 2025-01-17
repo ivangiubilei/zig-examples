@@ -15,5 +15,5 @@ you can find the executable in **zig-out/bin**
 ## Usage
 
 ```
-./samefile path/to/folder/
+./samefile path/to/folder
 ```
