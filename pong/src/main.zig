@@ -30,7 +30,7 @@ const Ball = struct {
             cpu_score += 1;
             self.reset();
         }
-        if (self.position.x - self.size.x >= SCREENWIDTH - 10) {
+        if (self.position.x + self.size.x >= SCREENWIDTH - 20) {
             player_score += 1;
             self.speed.x *= -1;
             self.reset();
@@ -89,19 +89,26 @@ const Paddle = struct {
     }
 
     pub fn followBall(self: *Paddle, ball: *Ball) void {
+        // self.position.y = ball.position.y;
+        const height = self.position.y + self.size.y / 2;
+        const ball_height = ball.position.y + ball.size.y / 2;
+
+        if (ball.position.x >= SCREENWIDTH / @as(f32, 1.6)) {
+            if (height > ball_height) {
+                self.position.y -= self.speed / 2.7;
+            }
+
+            if (height <= ball_height) {
+                self.position.y += self.speed / 2.7;
+            }
+        }
+
         if (self.position.y <= 0) {
             self.position.y = 0;
         }
+
         if (self.position.y + self.size.y >= SCREENHEIGHT) {
             self.position.y = SCREENHEIGHT - self.size.y;
-        }
-
-        if (ball.position.x >= SCREENWIDTH / 2) {
-            if (ball.position.y >= SCREENHEIGHT / 2) {
-                self.position.y += self.speed;
-            } else {
-                self.position.y -= self.speed;
-            }
         }
     }
 
@@ -125,13 +132,13 @@ pub fn main() anyerror!void {
 
         rl.drawText(rl.textFormat("%d", .{cpu_score}), SCREENWIDTH / 4 - 20, 20, 80, rl.Color.gold);
         rl.drawText(rl.textFormat("%d", .{player_score}), SCREENWIDTH / 3 - 20, 20, 80, rl.Color.gold);
-
         defer rl.endDrawing();
+
         ball.update();
         ball.draw();
 
-        enemy.followBall(&ball);
         enemy.draw();
+        enemy.followBall(&ball);
 
         player.update();
         player.draw();
